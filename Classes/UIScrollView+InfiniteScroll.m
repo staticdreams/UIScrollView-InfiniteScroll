@@ -559,9 +559,9 @@ static const void *kPBInfiniteScrollStateKey = &kPBInfiniteScrollStateKey;
     }
     
     // is user initiated?
-    if(![self isDragging]) {
-        return;
-    }
+    // if(![self isDragging]) {
+    //     return;
+    // }
     
     // did it kick in already?
     if(state.loading) {
@@ -588,9 +588,9 @@ static const void *kPBInfiniteScrollStateKey = &kPBInfiniteScrollStateKey;
  */
 - (void)pb_scrollToInfiniteIndicatorIfNeeded:(BOOL)reveal {
     // do not interfere with user
-    if([self isDragging]) {
-        return;
-    }
+    // if([self isDragging]) {
+    //     return;
+    // }
     
     _PBInfiniteScrollState *state = self.pb_infiniteScrollState;
     
