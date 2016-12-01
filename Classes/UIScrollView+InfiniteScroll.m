@@ -82,6 +82,12 @@ static const void *kPBInfiniteScrollStateKey = &kPBInfiniteScrollStateKey;
 @property (nonatomic) UIActivityIndicatorViewStyle indicatorStyle;
 
 /**
+ *  Flag used to return user back to top of scroll view 
+ *  when loading initial content
+ */
+@property (nonatomic) BOOL scrollToTopWhenFinished;
+
+/**
  *  Extra padding to push indicator view below view bounds.
  *  Used in case when content size is smaller than view bounds
  */
@@ -378,6 +384,22 @@ static const void *kPBInfiniteScrollStateKey = &kPBInfiniteScrollStateKey;
 }
 
 /**
+ *  Checks if UIScrollView is empty.
+ *
+ *  @return BOOL
+ */
+- (BOOL)pb_hasContent {
+    CGFloat constant = 0;
+    
+    // Default UITableView reports height = 1 on empty tables
+    if([self isKindOfClass:[UITableView class]]) {
+        constant = 1;
+    }
+    
+    return self.contentSize.height > constant;
+}
+
+/**
  *  Returns bottom inset without extra padding and indicator padding.
  *
  *  @return CGFloat
@@ -515,6 +537,9 @@ static const void *kPBInfiniteScrollStateKey = &kPBInfiniteScrollStateKey;
     // Update infinite scroll state
     state.loading = YES;
     
+    // Scroll to top if scroll view had no content before update
+    state.scrollToTopWhenFinished = ![self pb_hasContent];
+    
     // Animate content insets
     //
     // @NOTE:
@@ -576,7 +601,11 @@ static const void *kPBInfiniteScrollStateKey = &kPBInfiniteScrollStateKey;
         // Initiate scroll to the bottom if due to user interaction contentOffset.y
         // stuck somewhere between last cell and activity indicator
         if(finished) {
-            [self pb_scrollToInfiniteIndicatorIfNeeded:NO force:NO];
+            if(state.scrollToTopWhenFinished) {
+                [self pb_scrollToTop];
+            } else {
+                [self pb_scrollToInfiniteIndicatorIfNeeded:NO force:NO];
+            }
         }
         
         // Curtain is closing they're throwing roses at my feet
@@ -626,15 +655,6 @@ static const void *kPBInfiniteScrollStateKey = &kPBInfiniteScrollStateKey;
     // apply trigger offset adjustment
     actionOffset.y -= state.triggerOffset;
     
-    // Disable infinite scroll when scroll view is empty
-    // Default UITableView reports height = 1 on empty tables
-    BOOL hasActualContent = (self.contentSize.height > 1);
-    
-    // is there any content?
-    if(!hasActualContent) {
-        return;
-    }
-    
     // is user initiated?
     if(![self isDragging]) {
         return;
@@ -643,6 +663,16 @@ static const void *kPBInfiniteScrollStateKey = &kPBInfiniteScrollStateKey;
     if(contentOffset.y > actionOffset.y) {
         [self pb_beginInfinitScrollIfNeeded:NO];
     }
+}
+
+/**
+ *  Scrolls view to top
+ */
+- (void)pb_scrollToTop {
+    CGPoint pt = CGPointZero;
+    pt.y = self.contentInset.top * -1;
+    
+    [self setContentOffset:pt animated:YES];
 }
 
 /**
