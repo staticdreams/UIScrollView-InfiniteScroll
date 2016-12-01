@@ -664,6 +664,11 @@ static const void *kPBInfiniteScrollStateKey = &kPBInfiniteScrollStateKey;
         return;
     }
     
+    // Force table view to update content size
+    if([self isKindOfClass:[UITableView class]]) {
+        PBForceUpdateTableViewContentSize((UITableView *)self);
+    }
+    
     CGFloat contentHeight = [self pb_clampContentSizeToFitVisibleBounds:self.contentSize];
     CGFloat indicatorRowHeight = [self pb_infiniteIndicatorRowHeight];
     
@@ -674,6 +679,29 @@ static const void *kPBInfiniteScrollStateKey = &kPBInfiniteScrollStateKey;
     
     if((self.contentOffset.y > minY && self.contentOffset.y < maxY) || force) {
         TRACE(@"Scroll to infinite indicator. Reveal: %@", reveal ? @"YES" : @"NO");
+        
+        // Use -scrollToRowAtIndexPath: in case of UITableView
+        // Because -setContentOffset: may not work properly when using self-sizing cells
+        if([self isKindOfClass:[UITableView class]]) {
+            UITableView *tableView = (UITableView *)self;
+            NSInteger numSections = [tableView numberOfSections];
+            NSInteger lastSection = numSections - 1;
+            NSInteger numRows = lastSection >= 0 ? [tableView numberOfRowsInSection:lastSection] : 0;
+            NSInteger lastRow = numRows - 1;
+            
+            if(lastSection >= 0 && lastRow >= 0) {
+                NSIndexPath *indexPath = [NSIndexPath indexPathForRow:lastRow inSection:lastSection];
+                UITableViewScrollPosition scrollPos = reveal ? UITableViewScrollPositionTop : UITableViewScrollPositionBottom;
+                
+                [tableView scrollToRowAtIndexPath:indexPath atScrollPosition:scrollPos animated:YES];
+                
+                // explicit return
+                return;
+            }
+            
+            // setContentOffset: works fine for empty table view.
+        }
+        
         [self setContentOffset:CGPointMake(0, reveal ? maxY : minY) animated:YES];
     }
 }
