@@ -541,19 +541,6 @@ static const void *kPBInfiniteScrollStateKey = &kPBInfiniteScrollStateKey;
     state.scrollToTopWhenFinished = ![self pb_hasContent];
     
     // Animate content insets
-    //
-    // @NOTE:
-    //
-    // If infinite scroll started while view was offscreen (i.e. from viewDidLoad)
-    // content insets may not be up to date yet which may lead to wrong offset after
-    // we finish animations (relevant to first call to -beginInfiniteScroll: which most likely
-    // will be used from viewDidLoad)
-    //
-    // UINavigationController and UITabBarController may update top and bottom insets
-    // during initial layout pass somewhere around viewWillAppear:
-    //
-    // This somehow should be taken into consideration
-    //
     [self pb_setScrollViewContentInset:contentInset animated:YES completion:^(BOOL finished) {
         if(finished) {
             [self pb_scrollToInfiniteIndicatorIfNeeded:YES force:forceScroll];
