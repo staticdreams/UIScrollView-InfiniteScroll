@@ -9,9 +9,9 @@
 import UIKit
 import Foundation
 
-private let downloadQueue = DispatchQueue(label: "ru.codeispoetry.downloadQueue", attributes: [])
-
 class CollectionViewController: UICollectionViewController, UICollectionViewDelegateFlowLayout {
+    
+    fileprivate let downloadQueue = DispatchQueue(label: "ru.codeispoetry.downloadQueue", qos: DispatchQoS.background)
     
     fileprivate let cellIdentifier = "PhotoCell"
     fileprivate let showPhotoSegueIdentifier = "ShowPhoto"
@@ -89,9 +89,7 @@ class CollectionViewController: UICollectionViewController, UICollectionViewDele
         
         if image == nil {
             downloadPhoto(url, completion: { (url, image) -> Void in
-                let cell = collectionView.cellForItem(at: indexPath) as? PhotoCell
-
-                cell?.imageView.image = image
+                collectionView.reloadItems(at: [indexPath])
             })
         }
         
@@ -123,15 +121,27 @@ class CollectionViewController: UICollectionViewController, UICollectionViewDele
     
     fileprivate func downloadPhoto(_ url: URL, completion: @escaping (_ url: URL, _ image: UIImage) -> Void) {
         downloadQueue.async(execute: { () -> Void in
-            if let data = try? Data(contentsOf: url) {
+            if let image = self.cache.object(forKey: url as NSURL) {
+                DispatchQueue.main.async {
+                    completion(url, image)
+                }
+                
+                return
+            }
+            
+            do {
+                let data = try Data(contentsOf: url)
+                
                 if let image = UIImage(data: data) {
-                    DispatchQueue.main.async(execute: { () -> Void in
+                    DispatchQueue.main.async {
                         self.cache.setObject(image, forKey: url as NSURL)
                         completion(url, image)
-                    })
+                    }
                 } else {
-                    print("Could not load URL: \(url)")
+                    print("Could not decode image")
                 }
+            } catch {
+                print("Could not load URL: \(url): \(error)")
             }
         })
     }
