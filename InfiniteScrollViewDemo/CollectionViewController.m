@@ -19,9 +19,9 @@ static NSString *const kCellIdentifier = @"PhotoCell";
 
 @interface CollectionViewController()
 
-@property NSMutableArray *photos;
-@property NSDate *modifiedAt;
-@property NSCache *cache;
+@property (nonatomic) NSMutableArray *photos;
+@property (nonatomic) NSDate *modifiedAt;
+@property (nonatomic) NSCache *cache;
 
 @end
 

@@ -28,9 +28,9 @@ static NSString *const kJSONNumPagesKey = @"nbPages";
 
 @interface TableViewController() <SFSafariViewControllerDelegate>
 
-@property NSMutableArray *stories;
-@property NSInteger currentPage;
-@property NSInteger numPages;
+@property (nonatomic) NSMutableArray *stories;
+@property (nonatomic) NSInteger currentPage;
+@property (nonatomic) NSInteger numPages;
 
 @end
 
