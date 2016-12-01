@@ -19,7 +19,7 @@ class CollectionViewController: UICollectionViewController, UICollectionViewDele
     
     fileprivate var photos = [URL]()
     fileprivate var modifiedAt = Date.distantPast 
-    fileprivate var cache = NSCache<AnyObject, AnyObject>()
+    fileprivate var cache = NSCache<NSURL, UIImage>()
     
     // MARK: - Lifecycle
     
@@ -47,7 +47,7 @@ class CollectionViewController: UICollectionViewController, UICollectionViewDele
         if identifier == showPhotoSegueIdentifier {
             if let indexPath = collectionView?.indexPath(for: sender as! UICollectionViewCell) {
                 let url = photos[indexPath.item]
-                if let _ = cache.object(forKey: url as AnyObject) {
+                if let _ = cache.object(forKey: url as NSURL) {
                     return true
                 }
             }
@@ -62,7 +62,7 @@ class CollectionViewController: UICollectionViewController, UICollectionViewDele
                 let controller = segue.destination as! PhotoViewController
                 let url = photos[indexPath.item]
                 
-                controller.photo = cache.object(forKey: url as AnyObject) as? UIImage
+                controller.photo = cache.object(forKey: url as NSURL)
             }
         }
     }
@@ -82,17 +82,16 @@ class CollectionViewController: UICollectionViewController, UICollectionViewDele
     override func collectionView(_ collectionView: UICollectionView, cellForItemAt indexPath: IndexPath) -> UICollectionViewCell {
         let cell = collectionView.dequeueReusableCell(withReuseIdentifier: cellIdentifier, for: indexPath) as! PhotoCell
         let url = photos[indexPath.item]
-        let image = cache.object(forKey: url as AnyObject) as? UIImage
+        let image = cache.object(forKey: url as NSURL)
         
         cell.imageView.backgroundColor = UIColor(white: 0.95, alpha: 1)
         cell.imageView.image = image
         
         if image == nil {
             downloadPhoto(url, completion: { (url, image) -> Void in
-                let indexPath_ = collectionView.indexPath(for: cell)
-                if indexPath == indexPath_ {
-                    cell.imageView.image = image
-                }
+                let cell = collectionView.cellForItem(at: indexPath) as? PhotoCell
+
+                cell?.imageView.image = image
             })
         }
         
@@ -127,9 +126,11 @@ class CollectionViewController: UICollectionViewController, UICollectionViewDele
             if let data = try? Data(contentsOf: url) {
                 if let image = UIImage(data: data) {
                     DispatchQueue.main.async(execute: { () -> Void in
-                        self.cache.setObject(image, forKey: url as AnyObject)
+                        self.cache.setObject(image, forKey: url as NSURL)
                         completion(url, image)
                     })
+                } else {
+                    print("Could not load URL: \(url)")
                 }
             }
         })

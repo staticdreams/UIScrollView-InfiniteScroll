@@ -222,7 +222,7 @@ static NSString *const kCellIdentifier = @"PhotoCell";
 }
 
 - (UICollectionViewCell*)collectionView:(UICollectionView *)collectionView cellForItemAtIndexPath:(NSIndexPath *)indexPath {
-    PhotoCell *cell = (PhotoCell*)[collectionView dequeueReusableCellWithReuseIdentifier:kCellIdentifier forIndexPath:indexPath];
+    PhotoCell *cell = (PhotoCell *)[collectionView dequeueReusableCellWithReuseIdentifier:kCellIdentifier forIndexPath:indexPath];
     NSURL *photoURL = self.photos[indexPath.item];
     UIImage *image = [self.cache objectForKey:photoURL];
     
@@ -231,10 +231,8 @@ static NSString *const kCellIdentifier = @"PhotoCell";
     
     if(!image) {
         [self downloadPhotoFromURL:photoURL completion:^(__unused NSURL *URL, UIImage *image) {
-            NSIndexPath *indexPath_ = [collectionView indexPathForCell:cell];
-            if([indexPath isEqual:indexPath_]) {
-                cell.imageView.image = image;
-            }
+            PhotoCell *cell = (PhotoCell *)[collectionView cellForItemAtIndexPath:indexPath];
+            cell.imageView.image = image;
         }];
     }
     
