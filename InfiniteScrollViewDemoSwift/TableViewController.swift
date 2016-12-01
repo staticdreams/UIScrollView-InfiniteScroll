@@ -195,7 +195,7 @@ extension TableViewController {
     }
     
     fileprivate func fetchData(_ handler: @escaping ((FetchResult) -> Void)) {
-        let hits: Int = Int(tableView.bounds.height) / 44
+        let hits = Int(tableView.bounds.height) / 44
         let requestURL = apiURL(hits, page: currentPage)
         
         let task = URLSession.shared.dataTask(with: requestURL, completionHandler: {
